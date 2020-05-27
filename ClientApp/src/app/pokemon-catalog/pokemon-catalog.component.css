@@ -1,0 +1,22 @@
+table{
+    width: 100%;
+}
+
+.table-container{
+    height: 700px;
+    overflow: auto;
+}
+
+.mat-row:hover {
+    background-color: lightgray;
+}
+
+.footer {
+    position: fixed;
+    left: 0;
+    bottom: 0;
+    width: 80%;
+    background-color: red;
+    color: white;
+    text-align: center;
+  }
