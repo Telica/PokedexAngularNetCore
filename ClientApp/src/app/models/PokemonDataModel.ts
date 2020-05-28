@@ -10,5 +10,5 @@ export interface PokemonDataModel
 export interface DetailedPokemonData
 {
     description : string;
-    evolutionName: string;
+    evolutionsNames: string;
 }

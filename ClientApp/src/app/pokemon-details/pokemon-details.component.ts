@@ -10,19 +10,24 @@ import { Router } from '@angular/router';
 })
 export class PokemonDetailsComponent implements OnInit {
   
-  public detailedPokemonData : DetailedPokemonData; 
+  detailedPokemonData : DetailedPokemonData = {
+    description: '',
+    evolutionsNames: ''
+  }; 
+
   public generalPokemonData : PokemonDataModel;
-  public generalString : string;
+  public pokemonDataString : string;
+
   constructor(private router : Router, private pokemonDataService: PokemonDataService) { }
 
   ngOnInit() {
-    this.loadPokemonDetails();
-    this.generalString = localStorage.getItem('dataSource');
-    this.generalPokemonData = JSON.parse(this.generalString);
+    this.pokemonDataString = localStorage.getItem('dataSource');
+    this.generalPokemonData = JSON.parse(this.pokemonDataString);
+    this.loadPokemonDetails(this.generalPokemonData.name);
    }
 
-  loadPokemonDetails(){
-     this.pokemonDataService.getDetailedPokemonData("pikachu").subscribe(fetchData => {
+  loadPokemonDetails(pokemonName : string){
+     this.pokemonDataService.getDetailedPokemonData(pokemonName).subscribe(fetchData => {
        this.detailedPokemonData = fetchData;
        console.log(this.detailedPokemonData);
      })
@@ -30,10 +35,6 @@ export class PokemonDetailsComponent implements OnInit {
 
   onBack(){
     this.router.navigate(['pokemon-catalog']);
-  }
-
-  onDestroy(){
-    //this.pokemonDataService.changueMessage(this.generalPokemonData);
   }
 
 }

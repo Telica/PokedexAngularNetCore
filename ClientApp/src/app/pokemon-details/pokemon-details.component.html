@@ -6,11 +6,17 @@
     </div>
 
     <div fxLayout="column" fxFlex="60" > 
-        <p>Dato1:</p>
-        <p>Dato2:</p>
+        <p>Name: {{generalPokemonData.name}}</p>
+        <p>Type: {{generalPokemonData.types}}</p>
+        <p>Weight: {{generalPokemonData.weight}}</p>
+        <p>Abilities: {{generalPokemonData.abilities}}</p>
+        <p>Description: {{detailedPokemonData.description}}</p>
+        <p>Evolutions: {{detailedPokemonData.evolutionsNames}}</p>
     </div>
+</div>
 
-    <div fxLayout="column" fxFlex="10">
+<div>
+    <div fxLayout="row" fxFlex="10">
         <button class="button" mat-raised-button color="primary" (click)="onBack()">Volver</button>
     </div>
 </div>
