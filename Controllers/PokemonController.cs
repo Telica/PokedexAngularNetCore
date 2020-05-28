@@ -43,53 +43,72 @@ namespace Pokedex.Controllers
         [HttpGet("{pageIndex}")]
         public async Task<ActionResult<List<PokemonDataModel>>> GetPokemonList(int pageIndex)
         {
-            //Create List to store Pokemon Data.
-            List<PokemonDataModel> pokemonList = new List<PokemonDataModel>();
+            List<PokemonDataModel> cacheValue;
 
-            //Data Settings per page.
-            int limit = 20;
-            int offset = 20 * pageIndex;
-
-            if (pageIndex > 50 || pageIndex < 0)
+            if (!_cache.TryGetValue<List<PokemonDataModel>>(pageIndex, out cacheValue))
             {
-                return BadRequest();
-            }
+                //Get Data if not in cache.
 
-            //Get Page Data.
-            var pokemonPageData = await pokeClient.GetNamedResourcePageAsync<Pokemon>(limit, offset);
-            if (pokemonPageData == null)
-            {   
-                return NotFound();
-            }
+                //Create List to store Pokemon Data.
+                List<PokemonDataModel> pokemonList = new List<PokemonDataModel>();
 
-            //Processing for each one of the pokemon in the page data retrieved.
-            foreach (var result in pokemonPageData.Results)
-            {
-                //Create Data Structures for one pokemon.
-                PokemonDataModel pokemonModel = new PokemonDataModel
+                //Data Settings per page.
+                int limit = 20;
+                int offset = 20 * pageIndex;
+
+                if (pageIndex > 50 || pageIndex < 0)
                 {
-                    Types = new List<string>(),
-                    Abilities = new List<string>()
-                };
-                
-                // Get Opertiaon to obtain the specific pokemon data.
-                var fetchedPokemonData = await pokeClient.GetResourceAsync<Pokemon>(result.Name);
-                if (fetchedPokemonData == null)
+                    return BadRequest();
+                }
+
+                //Get Page Data.
+                var pokemonPageData = await pokeClient.GetNamedResourcePageAsync<Pokemon>(limit, offset);
+                if (pokemonPageData == null)
                 {
                     return NotFound();
                 }
-                //Fill the Data Model
-                pokemonModel.Name = fetchedPokemonData.Name;
-                pokemonModel.Weight = fetchedPokemonData.Weight;
-                pokemonModel.ImageUrl = fetchedPokemonData.Sprites.FrontDefault;
-                pokemonModel.Types.AddRange(fetchedPokemonData.Types.Select(element => element.Type.Name));
-                pokemonModel.Abilities.AddRange(fetchedPokemonData.Abilities.Select(element => element.Ability.Name));
-                
-                //Add the pokemon data to the list.
-                pokemonList.Add(pokemonModel);
+
+                //Processing for each one of the pokemon in the page data retrieved.
+                foreach (var result in pokemonPageData.Results)
+                {
+                    //Create Data Structures for one pokemon.
+                    PokemonDataModel pokemonModel = new PokemonDataModel
+                    {
+                        Types = new List<string>(),
+                        Abilities = new List<string>()
+                    };
+
+                    // Get Opertiaon to obtain the specific pokemon data.
+                    var fetchedPokemonData = await pokeClient.GetResourceAsync<Pokemon>(result.Name);
+                    if (fetchedPokemonData == null)
+                    {
+                        return NotFound();
+                    }
+                    //Fill the Data Model
+                    pokemonModel.Name = fetchedPokemonData.Name;
+                    pokemonModel.Weight = fetchedPokemonData.Weight;
+                    pokemonModel.ImageUrl = fetchedPokemonData.Sprites.FrontDefault;
+                    pokemonModel.Types.AddRange(fetchedPokemonData.Types.Select(element => element.Type.Name));
+                    pokemonModel.Abilities.AddRange(fetchedPokemonData.Abilities.Select(element => element.Ability.Name));
+
+                    //Add the pokemon data to the list.
+                    pokemonList.Add(pokemonModel);
+                }
+                cacheValue = pokemonList;
+
+                //Cache expiration in 3 minutes
+                var cacheEntryOptions = new MemoryCacheEntryOptions()
+                    .SetSlidingExpiration(TimeSpan.FromMinutes(3));
+
+                // Save values in cache for a given key.
+                _cache.Set<List<PokemonDataModel>>(pageIndex, cacheValue, cacheEntryOptions);
             }
-            return Ok(pokemonList);
+            return Ok(cacheValue);
         }
+
+
+
+
 
         /// <summary>
         /// Retrieves additional data for a specific Pokemon, this includes Evolutions and description.
@@ -99,64 +118,79 @@ namespace Pokedex.Controllers
         [HttpGet("details/{pokemonName}")]
         public async Task<ActionResult<DetailedPokemonData>> GetPokemonData(string pokemonName)
         {
-            //Handles no name in pokemon Name.
-            if (pokemonName == null)
+            DetailedPokemonData cacheValue;
+
+            //LOOK FOR CACHE KEY.
+            if (!_cache.TryGetValue<DetailedPokemonData>(pokemonName, out cacheValue))
             {
-                return BadRequest();
-            }
-
-            DetailedPokemonData pokeData = new DetailedPokemonData {
-                EvolutionsNames = new List<string>()
-            };
-
-            try
-            {
-                var pokemonData = await pokeClient.GetResourceAsync<Pokemon>(pokemonName);
-                if (pokemonData == null)
+                // Key not in cache, so get data.
+                if (pokemonName == null)
                 {
-                    return NotFound();
+                    return BadRequest();
                 }
 
-                PokemonSpecies PokemonSpecies = await pokeClient.GetResourceAsync(pokemonData.Species);
-
-                if (PokemonSpecies == null)
+                DetailedPokemonData pokeData = new DetailedPokemonData
                 {
-                    return NotFound();
-                }
+                    EvolutionsNames = new List<string>()
+                };
 
-                var queryEngDescription = PokemonSpecies.FlavorTextEntries.First(result => result.Language.Name == "en");
-                pokeData.Description = queryEngDescription.FlavorText.Replace('\n', ' ');                
-
-                var evolutionChainUrl = PokemonSpecies.EvolutionChain.Url;
-                var evolutionChainID = Int32.Parse(evolutionChainUrl.Split("/")[6]);
-
-                EvolutionChain evolutionChain = await pokeClient.GetResourceAsync<EvolutionChain>(evolutionChainID);
-                if (evolutionChain == null)
-                {
-                    return NotFound();
-                }
-
-                var basePokemon = evolutionChain.Chain.Species.Name;
-                pokeData.EvolutionsNames.Add(basePokemon);
                 try
                 {
-                    var FirstLevelEvolution = evolutionChain.Chain.EvolvesTo.Select(x => x.Species.Name);
-                    pokeData.EvolutionsNames.AddRange(FirstLevelEvolution);
-                    var secondLevelEvolution = evolutionChain.Chain.EvolvesTo[0].EvolvesTo.Select(x => x.Species.Name);
-                    pokeData.EvolutionsNames.AddRange(secondLevelEvolution);
-                }
-                catch
-                {
-                    System.Diagnostics.Debug.Write("No evolutions for this pokemon");
-                }
-                return Ok(pokeData);
+                    var pokemonData = await pokeClient.GetResourceAsync<Pokemon>(pokemonName);
+                    if (pokemonData == null)
+                    {
+                        return NotFound();
+                    }
 
+                    PokemonSpecies PokemonSpecies = await pokeClient.GetResourceAsync(pokemonData.Species);
+
+                    if (PokemonSpecies == null)
+                    {
+                        return NotFound();
+                    }
+
+                    var queryEngDescription = PokemonSpecies.FlavorTextEntries.First(result => result.Language.Name == "en");
+                    pokeData.Description = queryEngDescription.FlavorText.Replace('\n', ' ');
+
+                    var evolutionChainUrl = PokemonSpecies.EvolutionChain.Url;
+                    var evolutionChainID = Int32.Parse(evolutionChainUrl.Split("/")[6]);
+
+                    EvolutionChain evolutionChain = await pokeClient.GetResourceAsync<EvolutionChain>(evolutionChainID);
+                    if (evolutionChain == null)
+                    {
+                        return NotFound();
+                    }
+
+                    var basePokemon = evolutionChain.Chain.Species.Name;
+                    pokeData.EvolutionsNames.Add(basePokemon);
+                    try
+                    {
+                        var FirstLevelEvolution = evolutionChain.Chain.EvolvesTo.Select(x => x.Species.Name);
+                        pokeData.EvolutionsNames.AddRange(FirstLevelEvolution);
+                        var secondLevelEvolution = evolutionChain.Chain.EvolvesTo[0].EvolvesTo.Select(x => x.Species.Name);
+                        pokeData.EvolutionsNames.AddRange(secondLevelEvolution);
+                    }
+                    catch
+                    {
+                        System.Diagnostics.Debug.Write("No evolutions for this pokemon");
+                    }
+                    cacheValue = pokeData;
+                }
+                catch (Exception)
+                {
+                    return BadRequest();
+                }
+
+                //Cache expiration in 3 minutes
+                var cacheEntryOptions = new MemoryCacheEntryOptions()
+                    .SetSlidingExpiration(TimeSpan.FromMinutes(3));
+
+                // Save values in cache for a given key.
+                _cache.Set<DetailedPokemonData>(pokemonName, cacheValue, cacheEntryOptions);
             }
-            catch (Exception)
-            {
-                return BadRequest();
-            }
+            return Ok(cacheValue);
         }
         #endregion
+
     }
 }

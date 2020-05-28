@@ -1,7 +1,8 @@
 import { Injectable } from '@angular/core';
 import { PokemonDataModel,  DetailedPokemonData } from '../models/PokemonDataModel'
-import { HttpClient, HttpHeaders} from '@angular/common/http';
-import { Observable , BehaviorSubject} from 'rxjs';
+import { HttpClient } from '@angular/common/http';
+import { Observable } from 'rxjs';
+import { getBaseUrl } from 'src/main';
 
 
 @Injectable({
@@ -10,30 +11,23 @@ import { Observable , BehaviorSubject} from 'rxjs';
 
 export class PokemonDataService {
 
-  private baseUrl = 'https://localhost:44349/';
   constructor(private http: HttpClient) { }
 
+  //Endpoint
+  baseUrl = getBaseUrl();
   //#region Rest Services
+  
+  //GET - Get a single page of pokemon data from the server. 
   getPokemonDataPage(page: number):Observable<PokemonDataModel[]> {
     var apiURL = this.baseUrl + `api/Pokemon/${page}`;
     return this.http.get<PokemonDataModel[]>(apiURL);
   }
 
+  //GET -> Detail Pokemon Data For pokemon-detail view.
   getDetailedPokemonData(pokemonName: string):Observable<DetailedPokemonData> {
     var apiURL = this.baseUrl +  `api/Pokemon/details/${pokemonName}`;
     return this.http.get<DetailedPokemonData>(apiURL);
   }
   //#endregion
 
-  //#region LocalServices
-
-  public pokemonDataMessage : PokemonDataModel;
-  private messageSource = new BehaviorSubject(this.pokemonDataMessage);
-  currentMessage = this.messageSource.asObservable(); 
-
-  changueMessage(message : PokemonDataModel){
-    this.messageSource.next(message)
-  }
-
-  //#endregion
 }

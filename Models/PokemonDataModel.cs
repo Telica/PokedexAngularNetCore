@@ -8,7 +8,7 @@ namespace Pokedex.Models
     public class PokemonDataModel
     {
         public string Name { get; set; }
-        
+     
         public List<string> Types { get; set; }
 
         public int Weight { get; set; }

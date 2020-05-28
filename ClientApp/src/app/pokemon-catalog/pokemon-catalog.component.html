@@ -34,7 +34,9 @@
   
     <ng-container matColumnDef="imageUrl">
       <th mat-header-cell *matHeaderCellDef> Image </th>
-      <td mat-cell *matCellDef="let element"> <img [src]="element.imageUrl" /> </td>
+      <td mat-cell *matCellDef="let element"> 
+        <img id="currentPhoto" [src]="element.imageUrl" alt="Pokemon">
+      </td>
     </ng-container>
   
     <tr mat-header-row *matHeaderRowDef="displayedColumns; sticky: true"></tr>
@@ -42,6 +44,6 @@
   </table>
   <div class="footer">
   <mat-paginator fixed #paginator  showFirstLastButtons [pageSize] = "pageSize"
-  [pageIndex]="pageIndex"  [disabled] = "isPaginatorEnabled" [length] = 1000 (page)="pageEvent = GetData($event)"></mat-paginator>
+  [pageIndex]="pageIndex"  [disabled] = "isPaginatorEnabled" [length] = 980 (page)="GetData($event)"></mat-paginator>
   </div>
 </div>

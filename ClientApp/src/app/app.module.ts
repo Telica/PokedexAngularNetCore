@@ -5,8 +5,8 @@ import { RouterModule } from '@angular/router';
 import { AppComponent } from './app.component';
 import { NavMenuComponent } from './nav-menu/nav-menu.component';
 import { HomeComponent } from './home/home.component';
-import { CounterComponent } from './counter/counter.component';
-import { FetchDataComponent } from './fetch-data/fetch-data.component';
+
+import { HttpErrorInterceptor } from './http-error.interceptor';
 
 import { MatSnackBarModule} from '@angular/material/snack-bar'
 import { MatButtonModule } from '@angular/material/button'
@@ -23,8 +23,6 @@ import {FlexLayoutModule} from '@angular/flex-layout';
     AppComponent,
     NavMenuComponent,
     HomeComponent,
-    CounterComponent,
-    FetchDataComponent,
     PokemonCatalogComponent,
     PokemonDetailsComponent
   ],
@@ -37,9 +35,7 @@ import {FlexLayoutModule} from '@angular/flex-layout';
     MatTableModule,
     MatPaginatorModule,
     RouterModule.forRoot([
-      { path: '', component: HomeComponent, pathMatch: 'full' },
-      { path: 'counter', component: CounterComponent },
-      { path: 'fetch-data', component: FetchDataComponent },
+      { path: '', component: PokemonCatalogComponent, pathMatch: 'full' },
       { path: 'pokemon-catalog', component: PokemonCatalogComponent},
       { path: 'pokemon-details', component: PokemonDetailsComponent}
     ]),
@@ -49,7 +45,11 @@ import {FlexLayoutModule} from '@angular/flex-layout';
     MatButtonModule,
     MatTableModule,
     MatPaginatorModule,],
-  providers: [
+  providers: [{
+    provide: HTTP_INTERCEPTORS,
+    useClass: HttpErrorInterceptor,
+    multi: true
+    }
   ],
   bootstrap: [AppComponent]
 })

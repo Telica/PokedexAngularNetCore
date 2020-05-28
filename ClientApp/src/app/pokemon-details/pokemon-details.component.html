@@ -2,7 +2,8 @@
 
 <div fxLayout="row wrap" fxLayoutAlign="start center" fxLayoutGap="20px" > 
     <div fxLayout="column" fxFlex="30" >
-        <img src="{{generalPokemonData.imageUrl}}" alt="Pokemon" width="200" height="200"> 
+        <img id="currentPhoto" src="{{generalPokemonData.imageUrl}}" alt="Pokemon" width="200" height="200"  
+        onerror="this.onerror=null; this.src='https://www.publicdomainpictures.net/pictures/280000/velka/not-found-image-15383864787lu.jpg'"> 
     </div>
 
     <div fxLayout="column" fxFlex="60" > 
