@@ -28,5 +28,5 @@ For the deploy in Azure, you need this requeriments.
 ## Steps
 
 1. Open Visual Studio And in the hierarchy Explorer found the proyect and right click -> Publish.
-![alt text](https://imgur.com/a/SbDI8Jk)
+![](https://imgur.com/8V5cJY1)
 2. 
