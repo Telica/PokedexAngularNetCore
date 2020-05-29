@@ -15,3 +15,18 @@ The application is hosted in Azure, [Link To Application](https://pokedexv220200
 - Basic Test for integration with Xunit.
 - Cache in intermediate layer.
 - Cloud Hosting Azure.
+
+# Instructions to Deploy in Azure.
+
+For the deploy in Azure, you need this requeriments.
+
+- Visual studio 2019.
+- Node v14
+- npm v6.14.4
+- Have an Azure free account or make a free one.
+
+## Steps
+
+1. Open Visual Studio And in the hierarchy Explorer found the proyect and right click -> Publish.
+![alt text](https://imgur.com/a/SbDI8Jk)
+2. 
